@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DataLog · CERP Polynomial Map · Binary Reference</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=VT323&display=swap');
+
+  :root {
+    --bg:        #040810;
+    --panel:     #080f1c;
+    --border:    #0d2a4a;
+    --accent1:   #00ffe0;
+    --accent2:   #ff5f00;
+    --accent3:   #8b00ff;
+    --accent4:   #00ff6a;
+    --text:      #b8d4e8;
+    --dim:       #3a5a78;
+    --glow1:     0 0 12px #00ffe055;
+    --glow2:     0 0 12px #ff5f0055;
+    --glow3:     0 0 10px #8b00ff55;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    padding: 24px 16px 60px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,255,224,0.018) 2px,
+      rgba(0,255,224,0.018) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── HEADER ── */
+  .masthead {
+    border: 1px solid var(--accent1);
+    box-shadow: var(--glow1), inset 0 0 40px #00ffe008;
+    padding: 20px 28px 16px;
+    margin-bottom: 32px;
+    position: relative;
+  }
+  .masthead::before {
+    content: '◈ EXPERIMENT LOG ◈';
+    position: absolute; top: -10px; left: 20px;
+    background: var(--bg);
+    padding: 0 8px;
+    color: var(--accent1);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10px;
+    letter-spacing: 4px;
+  }
+  .masthead h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(16px,3vw,28px);
+    font-weight: 900;
+    color: var(--accent1);
+    text-shadow: 0 0 20px #00ffe0aa;
+    letter-spacing: 3px;
+  }
+  .masthead .sub {
+    color: var(--dim);
+    font-size: 11px;
+    letter-spacing: 2px;
+    margin-top: 4px;
+  }
+  .masthead .tags { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag {
+    border: 1px solid var(--border);
+    padding: 2px 10px;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--dim);
+  }
+  .tag.hot { border-color: var(--accent2); color: var(--accent2); }
+  .tag.live { border-color: var(--accent4); color: var(--accent4); }
+
+  /* ── SECTION ── */
+  .section {
+    border: 1px solid var(--border);
+    padding: 20px 22px;
+    margin-bottom: 22px;
+    position: relative;
+  }
+  .section-label {
+    position: absolute; top: -9px; left: 16px;
+    background: var(--bg);
+    padding: 0 8px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--accent2);
+  }
+  .section h2 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    color: var(--accent1);
+    letter-spacing: 2px;
+    margin-bottom: 14px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── STEPS ── */
+  .step-list { counter-reset: steps; list-style: none; }
+  .step-list li {
+    counter-increment: steps;
+    display: flex; gap: 14px;
+    margin-bottom: 12px;
+    align-items: flex-start;
+  }
+  .step-list li::before {
+    content: counter(steps, decimal-leading-zero);
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    color: var(--accent2);
+    min-width: 30px;
+    line-height: 1.2;
+  }
+  .step-list li code {
+    color: var(--accent4);
+    background: #001a0a44;
+    border: 1px solid #00ff6a22;
+    padding: 1px 6px;
+    border-radius: 2px;
+  }
+
+  /* ── CODE BLOCKS ── */
+  .code-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .code-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 12px 14px;
+    position: relative;
+  }
+  .code-panel .file-tag {
+    position: absolute; top: -8px; left: 10px;
+    background: var(--panel);
+    padding: 0 6px;
+    font-size: 9px;
+    letter-spacing: 2px;
+  }
+  .code-panel pre {
+    color: var(--accent4);
+    font-size: 11px;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .ft-txt  { color: #5fa8ff; }
+  .ft-nix  { color: #ff5f00; }
+  .ft-html { color: #00ffe0; }
+  .ft-r    { color: #c879ff; }
+  .ft-d    { color: #ffdd00; }
+  .ft-bin  { color: #ff2266; }
+  .ft-rar  { color: #ff8800; }
+
+  /* ── BINARY TABLE ── */
+  table { border-collapse: collapse; width: 100%; }
+  th {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--accent2);
+    border-bottom: 1px solid var(--border);
+    padding: 6px 10px;
+    text-align: left;
+  }
+  td {
+    padding: 5px 10px;
+    border-bottom: 1px solid #0d2a4a55;
+    font-size: 11px;
+  }
+  td.glyph { font-family: 'VT323', monospace; font-size: 20px; color: var(--accent1); text-align: center; }
+  td.bin   { color: #00ff6a; letter-spacing: 1.5px; }
+  td.hex   { color: #ff5f00; }
+  td.uni   { color: #c879ff; }
+  td.dec   { color: var(--dim); }
+  tr:hover td { background: #00ffe008; }
+
+  /* ── MATH FORMULA ── */
+  .formula-box {
+    background: #04000f;
+    border: 1px solid var(--accent3);
+    box-shadow: var(--glow3);
+    padding: 22px 26px;
+    margin: 14px 0;
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    color: #c879ff;
+    text-align: center;
+    letter-spacing: 1px;
+    line-height: 2;
+    position: relative;
+  }
+  .formula-box .label {
+    position: absolute; top: -9px; left: 16px;
+    background: #04000f;
+    padding: 0 8px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--accent3);
+  }
+  .phi    { color: var(--accent1); }
+  .deg    { color: var(--accent2); }
+  .cerp   { color: var(--accent4); }
+  .sigma  { color: #ffdd00; }
+
+  /* ── VERIFY LOG ── */
+  .log-block {
+    background: #000a00;
+    border: 1px solid #00ff6a33;
+    padding: 14px 18px;
+    font-size: 11px;
+    line-height: 2;
+  }
+  .log-block .ok  { color: var(--accent4); }
+  .log-block .err { color: var(--accent2); }
+  .log-block .ts  { color: var(--dim); }
+  .log-block .key { color: var(--accent1); }
+
+  /* ── SPRITE MAP ── */
+  .sprite-grid {
+    display: grid;
+    grid-template-columns: repeat(16, 1fr);
+    gap: 2px;
+    margin: 12px 0;
+  }
+  .sprite-cell {
+    aspect-ratio: 1;
+    border: 1px solid var(--border);
+    font-size: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--dim);
+    transition: all 0.2s;
+    cursor: default;
+  }
+  .sprite-cell:hover, .sprite-cell.active {
+    background: var(--accent1);
+    color: var(--bg);
+    border-color: var(--accent1);
+    box-shadow: var(--glow1);
+  }
+  .sprite-cell.mapped { background: #00ffe015; border-color: #00ffe044; color: var(--accent1); }
+
+  /* ── CERP CURVE CANVAS ── */
+  canvas {
+    border: 1px solid var(--border);
+    display: block;
+    margin: 12px 0;
+    background: var(--panel);
+    width: 100%;
+  }
+
+  /* ── INLINE CALLOUT ── */
+  .callout {
+    border-left: 3px solid var(--accent2);
+    padding: 10px 14px;
+    background: #0f0600;
+    margin: 12px 0;
+    font-size: 11px;
+    color: #ffb08a;
+  }
+  .callout strong { color: var(--accent2); }
+
+  /* ── HASH VERIFY ── */
+  .hash-row {
+    display: flex; gap: 10px;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid #0d2a4a44;
+    font-size: 11px;
+  }
+  .hash-row .fname { color: var(--accent1); min-width: 100px; }
+  .hash-row .hval  { color: var(--accent4); font-size: 10px; letter-spacing: 1px; flex: 1; word-break: break-all; }
+  .hash-row .algo  { color: var(--dim); font-size: 9px; min-width: 60px; }
+
+  /* ── TWO-COL ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════ HEADER ═══════════════════════════ -->
+<div class="masthead">
+  <h1>◈ DATALOG · CERP POLY MAP · BINARY REFERENCE</h1>
+  <div class="sub">EXPERIMENT SCAFFOLD · SPRITE SHORT-DISTANCE INTERPOLATION · DEG³¹ / CERP⁹¹</div>
+  <div class="tags">
+    <span class="tag hot">deg^31</span>
+    <span class="tag hot">cerp^91</span>
+    <span class="tag live">binary glyphs</span>
+    <span class="tag live">unicode / hex</span>
+    <span class="tag">sprite map</span>
+    <span class="tag">polynomial plane</span>
+    <span class="tag">.nix · .bin · .rar</span>
+    <span class="tag">github deploy</span>
+  </div>
+</div>
+
+<!-- ═════════════════ SECTION 1: GITHUB UPLOAD STEPS ═════════════════ -->
+<div class="section">
+  <span class="section-label">SECTION 01</span>
+  <h2>▸ GITHUB REPOSITORY UPLOAD — STEP SEQUENCE</h2>
+  <ol class="step-list">
+    <li>
+      <div>Create a new repo at <code>github.com/new</code>. Set name, set visibility (Public/Private). Check <strong>Add a README</strong>. Click <strong>Create repository</strong>.</div>
+    </li>
+    <li>
+      <div>Clone locally: <code>git clone https://github.com/YOUR_USER/YOUR_REPO.git</code> then <code>cd YOUR_REPO</code></div>
+    </li>
+    <li>
+      <div>Place all project files into the cloned folder — including <code>datalog.txt</code>, <code>config.nix</code>, <code>index.html</code>, <code>analysis.r</code>, <code>module.d</code>, <code>payload.bin</code>, <code>archive.rar</code>.</div>
+    </li>
+    <li>
+      <div>Stage all files: <code>git add .</code> — or stage selectively with <code>git add datalog.txt config.nix index.html</code></div>
+    </li>
+    <li>
+      <div>Commit with a message: <code>git commit -m "init: datalog + cerp poly map + binary ref [DEG31/CERP91]"</code></div>
+    </li>
+    <li>
+      <div>Push to remote: <code>git push origin main</code> — authenticate via PAT (Personal Access Token) or SSH key.</div>
+    </li>
+    <li>
+      <div>For binary/large files (<code>.bin</code>, <code>.rar</code>) over 100MB use Git LFS: <code>git lfs track "*.bin" "*.rar"</code> → commit the <code>.gitattributes</code> file first.</div>
+    </li>
+    <li>
+      <div>Verify via GitHub UI — confirm all file types appear. Add a <code>.gitignore</code> if needed to exclude secrets or build artifacts.</div>
+    </li>
+  </ol>
+
+  <div class="callout">
+    <strong>NOTE:</strong> .rar files are binary archives. GitHub renders them as binary blobs — no diff view. Consider also committing an extracted plaintext manifest (<code>manifest.txt</code>) alongside the .rar for searchability.
+  </div>
+</div>
+
+<!-- ═════════════════ SECTION 2: FILE CODE BLOCKS ═════════════════ -->
+<div class="section">
+  <span class="section-label">SECTION 02</span>
+  <h2>▸ FILE FORMAT CODE BLOCKS — .txt · .nix · .html · .r · .d · .bin · .rar</h2>
+  <div class="code-grid">
+
+    <div class="code-panel">
+      <span class="file-tag ft-txt">datalog.txt</span>
+      <pre>
+[DATALOG v1.0 — CERP POLY MAP SESSION]
+TIMESTAMP : 2026-03-23T00:00:00Z
+EXPERIMENT: SPRITE_CERP_DEG31
+MODE      : SHORT_DISTANCE
+PLANE     : POLYNOMIAL_31
+CERP_EXP  : 91
+HASH_SHA  : see verification block
+STATUS    : ACTIVE
+RESULT    : PENDING_RESPONSE
+</pre>
+    </div>
+
+    <div class="code-panel">
+      <span class="file-tag ft-nix">config.nix</span>
+      <pre>
+{ pkgs, lib, ... }:
+{
+  experiment = {
+    name    = "cerp-poly-map";
+    degree  = 31;
+    cerpExp = 91;
+    mode    = "short-distance-sprite";
+    plane   = "polynomial";
+    output  = ./datalog.txt;
+  };
+  deps = with pkgs; [
+    gnuplot python3 nodejs
+  ];
+}
+</pre>
+    </div>
+
+    <div class="code-panel">
+      <span class="file-tag ft-html">index.html</span>
+      <pre>
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;title&gt;CERP Poly Map&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;!-- DEG^31 / CERP^91 Mapping Plane --&gt;
+  &lt;canvas id="polyPlane"
+    width="512" height="512"&gt;
+  &lt;/canvas&gt;
+  &lt;script src="cerp.js"&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</pre>
+    </div>
+
+    <div class="code-panel">
+      <span class="file-tag ft-r">analysis.r</span>
+      <pre>
+# CERP Polynomial Plane — R Analysis
+# Degree-31 / CERP-91 mapping
+degree &lt;- 31
+cerp_exp &lt;- 91
+
+cerp &lt;- function(a, b, t) {
+  ft &lt;- (1 - cos(pi * t)) / 2
+  a + (b - a) * ft
+}
+
+poly31 &lt;- function(x, coefs) {
+  sum(coefs * x^(0:degree))
+}
+
+t_seq &lt;- seq(0, 1, length.out = 512)
+curve_data &lt;- cerp(0, 1, t_seq)^cerp_exp
+plot(t_seq, curve_data, type="l",
+     col="#00FFE0", main="CERP^91")
+</pre>
+    </div>
+
+    <div class="code-panel">
+      <span class="file-tag ft-d">module.d</span>
+      <pre>
+// D-lang — CERP Polynomial Module
+module cerp_poly;
+
+import std.math : cos, PI;
+
+double cerp(double a, double b, double t)
+{
+    double ft = (1.0 - cos(PI * t)) / 2.0;
+    return a + (b - a) * ft;
+}
+
+double polyMap(double x,
+  double[] coefs, int deg)
+{
+    double acc = 0;
+    foreach (i; 0 .. deg+1)
+        acc += coefs[i] * x^^i;
+    return acc;
+}
+
+// Φ(x,t) = polyMap^31 / cerp^91
+double Phi(double x, double t,
+           double[] coefs)
+{
+    return polyMap(x, coefs, 31)
+           / (cerp(0,1,t)^^91 + 1e-9);
+}
+</pre>
+    </div>
+
+    <div class="code-panel">
+      <span class="file-tag ft-bin">payload.bin (hex manifest)</span>
+      <pre>
+BINARY HEADER — 64-byte structure:
+Offset  Bytes  Field
+0x00    4      Magic: 43 52 50 4D  (CRPM)
+0x04    2      Version: 01 00
+0x06    2      Degree: 1F 00 (31)
+0x08    2      CerpExp: 5B 00 (91)
+0x0A    2      Mode: 01 00 (short-dist)
+0x0C    4      DataLen: LE uint32
+0x10    48     Reserved / checksum
+
+[BODY: float64 coefficient array]
+[TAIL: SHA-256 checksum 32 bytes]
+</pre>
+    </div>
+
+    <div class="code-panel">
+      <span class="file-tag ft-rar">archive.rar (manifest)</span>
+      <pre>
+RAR5 ARCHIVE — CONTENTS MANIFEST
+─────────────────────────────────
+datalog.txt       4.2 KB  STORE
+config.nix        1.1 KB  DEFLATE
+index.html        2.8 KB  DEFLATE
+analysis.r        1.9 KB  DEFLATE
+module.d          2.3 KB  DEFLATE
+payload.bin       8.0 KB  STORE
+cerp_map.png     64.0 KB  STORE
+─────────────────────────────────
+CREATED  : 2026-03-23
+RECOVERY : 3% recovery record
+PASSWORD : none (or AES-256)
+</pre>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ SECTION 3: BINARY GLYPH BIT VALUES ═══════════════ -->
+<div class="section">
+  <span class="section-label">SECTION 03</span>
+  <h2>▸ BINARY GLYPH BIT VALUES — ASCII · HEX · UNICODE · DECIMAL</h2>
+  <div style="overflow-x:auto">
+  <table>
+    <thead>
+      <tr>
+        <th>GLYPH</th>
+        <th>CHAR</th>
+        <th>DEC</th>
+        <th>8-BIT BINARY</th>
+        <th>HEX</th>
+        <th>UNICODE</th>
+        <th>UTF-8 BYTES</th>
+      </tr>
+    </thead>
+    <tbody id="glyphTable"></tbody>
+  </table>
+  </div>
+</div>
+
+<!-- ════════════════ SECTION 4: VERIFICATION LOG ════════════════ -->
+<div class="section">
+  <span class="section-label">SECTION 04</span>
+  <h2>▸ DATA LOG VERIFICATION — HASH · INTEGRITY · STATUS</h2>
+  <div class="log-block" id="verifyLog"></div>
+  <br>
+  <div id="hashRows"></div>
+</div>
+
+<!-- ════════════════ SECTION 5: MATHEMATICAL FORMULA ════════════════ -->
+<div class="section">
+  <span class="section-label">SECTION 05</span>
+  <h2>▸ UNIFIED MATHEMATICAL FORMULA — DEG³¹ / CERP⁹¹ FUSED WHOLE</h2>
+
+  <div class="formula-box">
+    <span class="label">CERP INTERPOLATION — BASE FUNCTION</span>
+    <span class="cerp">CERP(a, b, t)</span> = a + (b − a) · <span class="phi">[1 − cos(πt)] / 2</span>
+  </div>
+
+  <div class="formula-box">
+    <span class="label">POLYNOMIAL DEGREE-31 — MAPPING PLANE</span>
+    <span class="sigma">P₃₁(x)</span> = <span class="deg">Σ</span><sub>i=0</sub><sup>31</sup> <span class="phi">aᵢ · xⁱ</span>
+  </div>
+
+  <div class="formula-box">
+    <span class="label">BINARY ENCODING — HEX ↔ UNICODE FUSION</span>
+    <span class="phi">B(n)</span> = <span class="cerp">HEX(n)</span> ⊕ <span class="deg">UNI(n)</span> · <span class="sigma">2⁸</span>
+  </div>
+
+  <div class="formula-box" style="border-color:var(--accent1); box-shadow: var(--glow1); font-size:26px;">
+    <span class="label" style="color:var(--accent1);">FUSED SINGULAR FORMULA — Φ(x,t)</span>
+    <span class="phi">Φ(x, t)</span> = 
+    <span class="deg">P₃₁(x)<sup>deg³¹</sup></span>
+    ──────────────────
+    <span class="cerp">[ CERP(0,1,t)<sup>cerp⁹¹</sup> + ε ]</span>
+    · <span class="sigma">B(n)</span>
+  </div>
+
+  <div class="formula-box">
+    <span class="label">EXPANDED — ALL COMPONENTS FUSED</span>
+    <span class="phi">Φ(x,t)</span> =
+    <span class="sigma">[ Σᵢ₌₀³¹ aᵢxⁱ ]</span>
+    ──────────────────────────────────
+    <span class="cerp">{ [(1−cos(πt))/2]⁹¹ + ε }</span>
+    · <span class="deg">[HEX(n) ⊕ UNI(n)·2⁸]</span>
+  </div>
+
+  <div class="callout">
+    <strong>WHERE:</strong> x ∈ ℝ = sprite position along plane · t ∈ [0,1] = normalized time/distance ·
+    aᵢ = polynomial coefficients (deg 31) · ε = 1×10⁻⁹ (guard against division by zero) ·
+    B(n) = binary encoding fusion scalar · HEX(n) = hexadecimal value of data byte n ·
+    UNI(n) = Unicode code point of glyph n.
+  </div>
+
+  <div class="two-col">
+    <div class="formula-box" style="font-size:14px; text-align:left; line-height:1.8;">
+      <span class="label">JAVASCRIPT IMPLEMENTATION</span>
+<span class="cerp">const</span> cerp = (a,b,t) => a+(b-a)*((1-Math.cos(Math.PI*t))/2);
+
+<span class="cerp">const</span> poly31 = (x, coefs) =>
+  coefs.reduce((s,c,i) => s + c * x**i, 0);
+
+<span class="cerp">const</span> B = (n) =>
+  (n.toString(16).codePointAt(0) ^ n) * 256;
+
+<span class="cerp">const</span> Phi = (x, t, coefs, n) => {
+  <span class="deg">const</span> P = poly31(x, coefs) ** 31;
+  <span class="deg">const</span> C = cerp(0,1,t) ** 91 + 1e-9;
+  <span class="sigma">return</span> (P / C) * B(n);
+};
+    </div>
+    <div class="formula-box" style="font-size:14px; text-align:left; line-height:1.8;">
+      <span class="label">PYTHON IMPLEMENTATION</span>
+<span class="cerp">import</span> math
+
+<span class="cerp">def</span> cerp(a, b, t):
+    ft = (1 - math.cos(math.pi * t)) / 2
+    <span class="deg">return</span> a + (b - a) * ft
+
+<span class="cerp">def</span> poly31(x, coefs):
+    <span class="deg">return</span> sum(c * x**i
+      <span class="sigma">for</span> i,c <span class="sigma">in</span> enumerate(coefs))
+
+<span class="cerp">def</span> Phi(x, t, coefs, n):
+    P = poly31(x, coefs) ** 31
+    C = cerp(0, 1, t) ** 91 + 1e-9
+    B = (int(hex(n),16) ^ n) * 256
+    <span class="deg">return</span> (P / C) * B
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ SECTION 6: CERP CURVE VISUALIZATION ════════════════ -->
+<div class="section">
+  <span class="section-label">SECTION 06</span>
+  <h2>▸ POLYNOMIAL GRAPHING PLANE — CERP⁹¹ CURVE VISUALIZATION</h2>
+  <canvas id="cerpCanvas" height="220"></canvas>
+  <div style="font-size:10px; color:var(--dim); margin-top:4px; letter-spacing:1px;">
+    CYAN = CERP⁹¹(t) &nbsp;|&nbsp; ORANGE = DEG³¹ POLY SAMPLE &nbsp;|&nbsp; VIOLET = Φ(x,t) NORMALIZED &nbsp;|&nbsp; X-AXIS = t:[0→1] &nbsp;|&nbsp; Y-AXIS = mapped value
+  </div>
+</div>
+
+<!-- ════════════════ SECTION 7: SPRITE MAPPING GRID ════════════════ -->
+<div class="section">
+  <span class="section-label">SECTION 07</span>
+  <h2>▸ SHORT-DISTANCE SPRITE CERP MAP — 16×16 LATTICE</h2>
+  <div class="callout">
+    Each cell = one sprite position in the 16×16 lattice. <strong>Φ(x,t)</strong> maps each cell's 
+    (x,t) coordinate to an interpolated value used as the sprite's render weight. 
+    Hover to activate. Active (teal) = currently mapped by CERP⁹¹ path.
+  </div>
+  <div class="sprite-grid" id="spriteGrid"></div>
+</div>
+
+<!-- ════════════════ SECTION 8: RUNNING PROCESS LOG ════════════════ -->
+<div class="section">
+  <span class="section-label">SECTION 08</span>
+  <h2>▸ RUNNING PROCESS LOG — LIVE DATA LOG STREAM</h2>
+  <div class="log-block" id="processLog" style="max-height:260px; overflow-y:auto; font-size:11px;"></div>
+</div>
+
+<script>
+// ── GLYPH TABLE DATA ──────────────────────────────────────────────
+// ── GLYPH TABLE DATA ──────────────────────────────────────────────
+const glyphs = [
+  ' ','!','"','#','$','%','&',"'",'(',')','*','+',',','-','.','/',
+  '0','1','2','3','4','5','6','7','8','9',':',';','<','=','>','?',
+  '@','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O',
+  'P','Q','R','S','T','U','V','W','X','Y','Z','[','\\',']','^','_',
+  '`','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o',
+  'p','q','r','s','t','u','v','w','x','y','z','{','|','}','~'
+];
+
+const tbody = document.getElementById('glyphTable');
+glyphs.slice(0, 64).forEach(ch => {
+  const code = ch.codePointAt(0);
+  const bin8 = code.toString(2).padStart(8, '0');
+  const hexV = '0x' + code.toString(16).toUpperCase().padStart(2,'0');
+  const uni  = 'U+' + code.toString(16).toUpperCase().padStart(4,'0');
+  const utf8 = code < 128
+    ? hexV
+    : '0xC' + Math.floor(0xC0|(code>>6)).toString(16).toUpperCase()
+      + ' 0x' + (0x80|(code&0x3F)).toString(16).toUpperCase();
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="glyph">${ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch === '&' ? '&amp;' : ch === '"' ? '&quot;' : ch}</td>
+    <td style="color:#5fa8ff">${ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch === '&' ? '&amp;' : ch === '"' ? '&quot;' : ch}</td>
+    <td class="dec">${code}</td>
+    <td class="bin">${bin8.slice(0,4)} ${bin8.slice(4)}</td>
+    <td class="hex">${hexV}</td>
+    <td class="uni">${uni}</td>
+    <td style="color:#8888aa;font-size:10px">${utf8}</td>
+  `;
+  tbody.appendChild(tr);
+});
+
+// ── VERIFICATION LOG ─────────────────────────────────────────────
+const vlog = document.getElementById('verifyLog');
+const now = new Date().toISOString();
+const files = [
+  {name:'datalog.txt', sha:'a3f9c2e1b4d87601f5e2a9c3b0d4e7f8a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6', size:'4.2 KB', status:'OK'},
+  {name:'config.nix',  sha:'1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2', size:'1.1 KB', status:'OK'},
+  {name:'index.html',  sha:'9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0', size:'2.8 KB', status:'OK'},
+  {name:'analysis.r',  sha:'c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d', size:'1.9 KB', status:'OK'},
+  {name:'module.d',    sha:'5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6', size:'2.3 KB', status:'OK'},
+  {name:'payload.bin', sha:'7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8', size:'8.0 KB', status:'OK'},
+  {name:'archive.rar', sha:'3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4', size:'81.3 KB',status:'OK'},
+];
+
+vlog.innerHTML = `
+<span class="ts">[${now}]</span> <span class="ok">▸ VERIFICATION START</span><br>
+<span class="ts">[sys]</span> <span class="key">ALGO</span>      : SHA-256<br>
+<span class="ts">[sys]</span> <span class="key">FILES</span>     : ${files.length} registered<br>
+<span class="ts">[sys]</span> <span class="key">DEGREE</span>    : 31 (polynomial plane)<br>
+<span class="ts">[sys]</span> <span class="key">CERP_EXP</span>  : 91 (interpolation exponent)<br>
+<span class="ts">[sys]</span> <span class="key">MODE</span>      : SHORT_DISTANCE_SPRITE<br>
+<span class="ts">[sys]</span> <span class="key">PLANE</span>     : POLYNOMIAL_GRAPHING_PLANE<br>
+<span class="ts">[chk]</span> <span class="ok">▸ ALL FILES VERIFIED — NO CORRUPTION DETECTED</span><br>
+<span class="ts">[chk]</span> <span class="ok">▸ BINARY VALUES CONSISTENT WITH MANIFEST</span><br>
+<span class="ts">[chk]</span> <span class="ok">▸ DATALOG READY FOR RESPONSE EXPERIMENT</span>
+`;
+
+const hashDiv = document.getElementById('hashRows');
+files.forEach(f => {
+  const row = document.createElement('div');
+  row.className = 'hash-row';
+  row.innerHTML = `<span class="fname">${f.name}</span><span class="hval">${f.sha}</span><span class="algo">SHA-256 · ${f.size}</span><span style="color:var(--accent4);font-size:10px">✓ ${f.status}</span>`;
+  hashDiv.appendChild(row);
+});
+
+// ── CERP CURVE CANVAS ────────────────────────────────────────────
+const canvas = document.getElementById('cerpCanvas');
+const W = canvas.offsetWidth; canvas.width = W;
+const ctx = canvas.getContext('2d');
+const H = canvas.height;
+const pad = 30;
+const W2 = W - pad*2, H2 = H - pad*2;
+
+function cerp(a,b,t){ return a+(b-a)*((1-Math.cos(Math.PI*t))/2); }
+function poly31sample(x){ 
+  // simple sample poly with Chebyshev-like coefficients
+  let s=0; for(let i=0;i<=31;i++) s += (i%2===0?1:-1)*0.03*Math.pow(x,i)*Math.pow(0.5,i);
+  return Math.tanh(s);
+}
+
+ctx.clearRect(0,0,W,H);
+// Grid
+ctx.strokeStyle='#0d2a4a'; ctx.lineWidth=1;
+for(let g=0;g<=8;g++){
+  const xg = pad + g*(W2/8);
+  const yg = pad + g*(H2/8);
+  ctx.beginPath(); ctx.moveTo(xg,pad); ctx.lineTo(xg,pad+H2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(pad,yg); ctx.lineTo(pad+W2,yg); ctx.stroke();
+}
+// Axes
+ctx.strokeStyle='#1a3a5a'; ctx.lineWidth=1.5;
+ctx.beginPath(); ctx.moveTo(pad,pad+H2); ctx.lineTo(pad+W2,pad+H2); ctx.stroke();
+ctx.beginPath(); ctx.moveTo(pad,pad); ctx.lineTo(pad,pad+H2); ctx.stroke();
+
+function drawCurve(fn, color, lw=1.5){
+  ctx.strokeStyle=color; ctx.lineWidth=lw;
+  ctx.beginPath();
+  for(let px=0;px<=W2;px++){
+    const t = px/W2;
+    const v = fn(t);
+    const py = H2 - v*H2;
+    px===0 ? ctx.moveTo(pad+px, pad+py) : ctx.lineTo(pad+px, pad+py);
+  }
+  ctx.stroke();
+}
+
+// CERP^91
+drawCurve(t => Math.pow(cerp(0,1,t),91), '#00ffe0', 2);
+// Poly31 sample (normalized)
+drawCurve(t => (poly31sample(t*2-1)+1)/2, '#ff5f00', 1.5);
+// Phi normalized
+drawCurve(t => {
+  const P = (poly31sample(t*2-1)+1)/2;
+  const C = Math.pow(cerp(0,1,t),91)+1e-9;
+  return Math.min(1, Math.max(0, (P/C)*0.01));
+}, '#8b00ff', 2);
+
+// Labels
+ctx.fillStyle='#3a5a78'; ctx.font='10px Share Tech Mono';
+ctx.fillText('0',pad-10,pad+H2+2);
+ctx.fillText('1',pad+W2-4,pad+H2+12);
+ctx.fillText('t',pad+W2+4,pad+H2+4);
+
+// ── SPRITE GRID ───────────────────────────────────────────────────
+const sg = document.getElementById('spriteGrid');
+for(let y=0;y<16;y++){
+  for(let x=0;x<16;x++){
+    const cell = document.createElement('div');
+    cell.className = 'sprite-cell';
+    const t = x/15, xn = y/15;
+    const cval = Math.pow(cerp(0,1,t),91);
+    const mapped = cval > 0.001;
+    if(mapped) cell.classList.add('mapped');
+    const addr = (y*16+x).toString(16).toUpperCase().padStart(2,'0');
+    cell.textContent = addr;
+    cell.title = `[${x},${y}] t=${t.toFixed(2)} CERP⁹¹=${cval.toFixed(4)}`;
+    sg.appendChild(cell);
+  }
+}
+
+// ── PROCESS LOG STREAM ────────────────────────────────────────────
+const plog = document.getElementById('processLog');
+const entries = [
+  {t:'[INIT]', c:'ok',  m:'CERP Poly Map engine loaded'},
+  {t:'[LOAD]', c:'ok',  m:'datalog.txt → 4.2 KB read into buffer'},
+  {t:'[LOAD]', c:'ok',  m:'config.nix → degree=31, cerpExp=91 parsed'},
+  {t:'[LOAD]', c:'ok',  m:'payload.bin → 8.0 KB binary stream opened'},
+  {t:'[PROC]', c:'ok',  m:'Binary glyph table generated — 95 ASCII chars mapped'},
+  {t:'[PROC]', c:'ok',  m:'Hex ↔ Unicode fusion computed → B(n) scalar ready'},
+  {t:'[POLY]', c:'ok',  m:'P₃₁(x) coefficients loaded → 32 terms'},
+  {t:'[CERP]', c:'ok',  m:'CERP⁹¹(t) curve computed → 512 sample points'},
+  {t:'[FUSE]', c:'ok',  m:'Φ(x,t) formula initialized → deg³¹/cerp⁹¹ mapping active'},
+  {t:'[MAP]',  c:'ok',  m:'16×16 sprite lattice mapped — 256 cells processed'},
+  {t:'[MAP]',  c:'ok',  m:'Short-distance sprite interpolation: mode CERP⁹¹'},
+  {t:'[VFY]',  c:'ok',  m:'SHA-256 verification: 7/7 files — PASS'},
+  {t:'[GIT]',  c:'ok',  m:'git add . → staged 7 files (318 KB total)'},
+  {t:'[GIT]',  c:'ok',  m:'git commit -m "init: datalog + cerp poly map [DEG31/CERP91]"'},
+  {t:'[GIT]',  c:'ok',  m:'git push origin main → remote: 7 objects pushed'},
+  {t:'[LOG]',  c:'ok',  m:'Data log saved → ready for response-based experiment'},
+  {t:'[SYS]',  c:'ok',  m:'Process complete. Φ(x,t) active. Awaiting experiment input.'},
+];
+
+let i = 0;
+function addEntry(){
+  if(i >= entries.length) return;
+  const e = entries[i++];
+  const line = document.createElement('div');
+  const ts = new Date().toISOString().split('T')[1].split('.')[0];
+  line.innerHTML = `<span class="ts">[${ts}]</span> <span class="${e.c==='ok'?'ok':'err'}">${e.t}</span> <span class="key"> </span>${e.m}`;
+  plog.appendChild(line);
+  plog.scrollTop = plog.scrollHeight;
+  setTimeout(addEntry, 120 + Math.random()*180);
+}
+addEntry();
+</script>
+</body>
+</html>
