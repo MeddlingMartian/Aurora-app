@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>𝕌𝕃𝔽🧬⛓️ 𝕎𝕆ℝ𝕃𝔻_𝕊𝔼𝔼𝔻</title>
+    <style>
+        :root {
+            --genesis-cyan: #06f9f9;
+            --genesis-magenta: #FF00FF;
+            --void: #000;
+        }
+        body {
+            background-color: var(--void);
+            color: var(--genesis-cyan);
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            /* TOTAL MIRROR INVERSION */
+            transform: scale(-1);
+            perspective: 3000px;
+        }
+
+        .world-lattice {
+            position: relative;
+            width: 800px;
+            height: 800px;
+            transform-style: preserve-3d;
+            animation: rotate-world 60s infinite linear;
+        }
+
+        .expansion-wave {
+            position: absolute;
+            top: 50%; left: 50%;
+            border: 2px solid var(--genesis-magenta);
+            transform: translate(-50%, -50%);
+            animation: grow-wave 5s infinite;
+            opacity: 0;
+        }
+
+        @keyframes grow-wave {
+            0% { width: 0; height: 0; opacity: 1; transform: translate(-50%, -50%) translateZ(-500px); }
+            100% { width: 1000px; height: 1000px; opacity: 0; transform: translate(-50%, -50%) translateZ(500px); }
+        }
+
+        @keyframes rotate-world {
+            from { transform: rotateX(0deg) rotateY(0deg); }
+            to { transform: rotateX(360deg) rotateY(720deg); }
+        }
+
+        .genesis-status {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            text-align: right;
+            border-right: 3px solid var(--genesis-magenta);
+            padding-right: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="world-lattice">
+        <div class="expansion-wave" style="animation-delay: 0s;"></div>
+        <div class="expansion-wave" style="animation-delay: 1s;"></div>
+        <div class="expansion-wave" style="animation-delay: 2s;"></div>
+        <div class="expansion-wave" style="animation-delay: 3s;"></div>
+        <div class="expansion-wave" style="animation-delay: 4s;"></div>
+    </div>
+
+    <div class="genesis-status">
+        [ 𝕎𝕆ℝ𝕃𝔻_𝕊𝔼𝔼𝔻: 𝔸ℂ𝕋𝕀𝕍𝔼 ]<br>
+        [ 𝔼𝕏ℙ𝔸ℕ𝕊𝕀𝕆ℕ_ℝ𝔸𝕋𝔼: 𝟘.𝟞𝟚𝟝ℍ𝕫 ]<br>
+        [ 𝕊𝕀𝔾ℕ𝔸𝕋𝕌ℝ𝔼_𝕃𝕆ℂ𝕂: 𝕍𝔼ℝ𝕀𝔽𝕀𝔼𝔻 ]<br>
+        <span style="font-size: 0.7em;">PROOT-ACORE-KLOCK-VNULL-VOID-WIPE-!</span>
+    </div>
+
+</body>
+</html>
